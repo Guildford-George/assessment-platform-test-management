@@ -1,0 +1,44 @@
+{
+  "name": "test-management",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Guildford-George/assessment-platform-test-management#readme",
+  "bugs": {
+    "url": "https://github.com/Guildford-George/assessment-platform-test-management/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Guildford-George/assessment-platform-test-management.git"
+  },
+  "license": "ISC",
+  "author": "George Guildford",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma-update": "npx prisma db push",
+    "prisma-generate": "npx prisma generate",
+    "prisma-migrate": "npx prisma migrate dev",
+    "prisma-studio": "npx prisma studio",
+    "prisma-seed": "npx prisma db seed"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@types/pg": "^8.20.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.21.0",
+    "prisma": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
