@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Assessment {
+  id                 String              @id @db.Uuid
+  organizationId     String              @map("organization_id") @db.Uuid
+  isSystem           Boolean             @map("is_system") @db.Boolean
+  status             ResourceStatus
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  assessmentVersions AssessmentVersion[]
+
+  @@map("assessment")
+}
+
+model AssessmentVersion {
+  id           String        @id @db.Uuid
+  assessmentId String        @map("assessment_id") @db.Uuid
+  domainId     String        @map("domain_id") @db.Uuid
+  name         String        @db.Uuid
+  status       VersionStatus
+  hash         String        @unique
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  assessment   Assessment    @relation(fields: [assessmentId], references: [id])
+  domain       Domain        @relation(fields: [domainId], references: [id])
+  categories   Category[]
+
+  @@map("assessment_version")
+}
+
+model Category {
+  id                 String              @id @db.Uuid
+  name               String
+  organizationId     String              @map("organization_id") @db.Uuid
+  domainId           String              @map("domain_id") @db.Uuid
+  status             ResourceStatus
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  domain             Domain              @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  questionVersions   QuestionVersion[]
+  assessmentVersions AssessmentVersion[]
+  TestVersions       TestVersion[]
+
+  @@map("category")
+}
+
+model Domain {
+  id                 String              @id @db.Uuid
+  name               String
+  description        String
+  organizationId     String              @map("organization_id") @db.Uuid
+  isSystem           Boolean             @map("is_system") @db.Boolean
+  status             ResourceStatus
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  assessmentVersions AssessmentVersion[]
+  categories         Category[]
+  questionVersions   QuestionVersion[]
+  testVersions       TestVersion[]
+
+  @@map("domain")
+}
+
+model Option {
+  id               String         @id @default(uuid()) @db.Uuid
+  questionOptionId String         @map("question_option_id") @db.Uuid
+  text             String         @db.Text
+  isCorrect        Boolean        @map("is_correct") @db.Boolean
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  question_Option  QuestionOption @relation(fields: [questionOptionId], references: [id])
+
+  @@map("option")
+}
+
+model Question {
+  id               String            @id @default(uuid()) @db.Uuid
+  organizationId   String            @map("organization_id") @db.Uuid
+  isSystem         Boolean           @map("is_system") @db.Boolean
+  resourceStatus   ResourceStatus
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  questionVersions QuestionVersion[]
+
+  @@map("question")
+}
+
+model QuestionOption {
+  id               String            @id @default(uuid()) @db.Uuid
+  hash             String            @unique
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  options          Option[]
+  questionVersions QuestionVersion[]
+
+  @@map("question_option")
+}
+
+model QuestionType {
+  name             String            @id
+  label            String            @db.Text
+  description      String            @db.Text
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @map("updated_at") @db.Timestamptz(6)
+  questionVersions QuestionVersion[]
+
+  @@map("question_type")
+}
+
+model QuestionVersion {
+  version          Int             @db.Integer
+  id               String          @db.Uuid
+  questionText     String          @map("question_text") @db.Text
+  score            Float
+  isCurrent Boolean @db.Boolean @map("is_current")
+  questionType     String          @map("question_type") @db.Text
+  difficultyLevel  DifficultyLevel @map("difficulty_level")
+  hash             String          @unique @db.Text
+  versionStatus    VersionStatus
+  categoryId       String          @map("category_id") @db.Uuid
+  domainId         String          @map("domain_id") @db.Uuid
+  questionOptionId String          @map("question_option_id") @db.Uuid
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  category         Category        @relation(fields: [categoryId], references: [id])
+  domain           Domain          @relation(fields: [domainId], references: [id])
+  question         Question        @relation(fields: [id], references: [id])
+  questionOption   QuestionOption  @relation(fields: [questionOptionId], references: [id])
+  type             QuestionType    @relation(fields: [questionType], references: [name])
+
+  @@id([id, version])
+  @@map("question_version")
+}
+
+model Test {
+  id             String         @id @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  isSystem       Boolean        @map("is_system") @db.Boolean
+  status         ResourceStatus
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+  testVersions   TestVersion[]
+
+  @@map("test")
+}
+
+model TestRandomSetting {
+  id                             String   @id @db.Uuid
+  shuffleOptions                 Boolean  @map("shuffle_options") @db.Boolean
+  randomQuestionSelection        Boolean  @map("random_question_selection") @db.Boolean
+  questionPoolSize               Int      @map("question_pool_size") @db.Integer
+  questionToSelect               Int      @map("question_to_select") @db.Integer
+  preserveDifficultyDistribution Boolean  @map("preserve_difficulty_distribution") @db.Boolean
+  preserveCategoryDistribution   Boolean  @map("preserve_category_distribution") @db.Boolean
+  createdAt                      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("test_random_setting")
+}
+
+model TestVersion {
+  id          String        @id @db.Uuid
+  version     Int           @db.Integer
+  testId      String        @map("test_id") @db.Uuid
+  status      VersionStatus
+  title       String        @db.Text
+  description String        @db.Text
+  passMark    Int?          @map("pass_mark") @db.Integer
+  duration    Int
+  domainId    String        @map("domain_id") @db.Uuid
+  hash        String        @unique
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  domain      Domain        @relation(fields: [domainId], references: [id])
+  test        Test          @relation(fields: [testId], references: [id])
+  categories  Category[]
+
+  @@map("test_version")
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum ResourceStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum VersionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  RETIRED
+  DELETED
+}
